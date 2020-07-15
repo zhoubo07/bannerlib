@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ConvenientBanner"><attr format="boolean" name="canLoop"/><attr format="integer" name="autoTurningTime"/></declare-styleable>
+    <dimen name="convenientbanner_margin">10dp</dimen>
+    <item name="cb_item_tag" type="id"/>
+    <!--<string name="app_name">ConvenientBanner</string>-->
+</resources>
