@@ -25,6 +25,7 @@ import com.zhoubo07.bannerlib.view.CBLoopViewPager;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 页面翻转控件，极方便的广告栏
@@ -85,7 +86,7 @@ public class ConvenientBanner<T> extends RelativeLayout {
         viewPager.setLayoutManager(layoutManager);
         return this;
     }
-    public ConvenientBanner setPages(CBViewHolderCreator holderCreator, List<T> datas) {
+    public ConvenientBanner setPages(List<T> datas, Map<Integer, View> insertViewMap, CBViewHolderCreator holderCreator) {
         if(null==mDatas)mDatas = new ArrayList<>();
         mDatas.clear();
         mDatas.addAll(datas);
@@ -94,7 +95,7 @@ public class ConvenientBanner<T> extends RelativeLayout {
             return this;
         }
         isInitedBanner = true;
-        pageAdapter = new CBPageAdapter(holderCreator, mDatas, canLoop);
+        pageAdapter = new CBPageAdapter(holderCreator, mDatas, canLoop,insertViewMap);
         pageAdapter.setPagePadding(sPagePadding);
         pageAdapter.setShowLeftCardWidth(sShowLeftCardWidth);
         cbLoopScaleHelper.setPagePadding(sPagePadding);

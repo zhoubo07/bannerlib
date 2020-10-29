@@ -1,10 +1,8 @@
 package com.zhoubo07.bannerlib.banner;
 
-import android.animation.ArgbEvaluator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,15 +55,21 @@ public class BannerSetUtil {
         int itemLayoutId = bannerOptions.getItemLayoutId();
         if (itemLayoutId == 0) {
             //没有设定自定义布局id，所以是图片banner
-            ArrayList<String> bannerImgs = bannerOptions.getBannerImgs();
-            if (null == bannerImgs) throw new RuntimeException("缺少图片数据源");
+            List<String> bannerImgs = bannerOptions.getBannerImgs();
+            List<SimpleImageBannerBean> bannerImgBeans= bannerOptions.getBannerImgBeans();
+
+            if (null == bannerImgs && null == bannerImgBeans) throw new RuntimeException("缺少图片数据源");
+
             //判断是否画廊样式
             boolean isGallery = bannerOptions.isGallery();
             if (isGallery) {
                 //设置画廊样式LayoutManager
                 setGalleryManager(convenientBanner, bannerOptions);
             }
-            setPage(bannerOptions, getImageBannerBeanList(bannerImgs, bannerOptions.getDefultPic()), onItemClickListener);
+
+
+
+            setPage(bannerOptions, getImageBannerBeanList(bannerImgs,bannerImgBeans, bannerOptions.getDefultPic()), onItemClickListener);
         } else {
             //设置view样式
             List customDataList = bannerOptions.getCustomDataList();
@@ -87,12 +91,14 @@ public class BannerSetUtil {
      * @param bannerOptions       banner参数，指示器、圆角
      */
     private static void setPage(BannerOptions bannerOptions,
-                                ArrayList<SimpleImageBannerBean> imageList,
+                                List<SimpleImageBannerBean> imageList,
                                 OnItemClickListener onItemClickListener) {
         final int pageResId;
         if (bannerOptions.isCorners()) pageResId = R.layout.bannerlib_bannerview_image_radius;
         else pageResId = R.layout.bannerlib_bannerview_image;
         bannerOptions.getConvenientBanner().setPages(
+                imageList,
+                bannerOptions.getInsertViewMap(),
                 new CBViewHolderCreator() {
                     @Override
                     public Holder createHolder(View itemView) {
@@ -103,7 +109,7 @@ public class BannerSetUtil {
                     public int getLayoutId() {
                         return pageResId;
                     }
-                }, imageList);
+                });
 
         //设置指示器和条目监听
         setIndicatorAndItemListener(bannerOptions,imageList.size(),onItemClickListener);
@@ -116,6 +122,8 @@ public class BannerSetUtil {
                                          OnItemClickListener onItemClickListener) {
         bannerOptions.getConvenientBanner().setShowLeftCardWidth(0);
         bannerOptions.getConvenientBanner().setPages(
+                dataList,
+                bannerOptions.getInsertViewMap(),
                 new CBViewHolderCreator() {
                     @Override
                     public Holder createHolder(View itemView) {
@@ -137,7 +145,7 @@ public class BannerSetUtil {
                     public int getLayoutId() {
                         return itemLayoutId;
                     }
-                }, dataList);
+                });
 
         //设置指示器和条目监听
         setIndicatorAndItemListener(bannerOptions,dataList.size(),onItemClickListener);
@@ -175,8 +183,10 @@ public class BannerSetUtil {
      * @param defultPic
      * @return
      */
-    private static ArrayList<SimpleImageBannerBean> getImageBannerBeanList(final ArrayList<String> bannerImgs,
+    private static List<SimpleImageBannerBean> getImageBannerBeanList(final List<String> bannerImgs,
+                                                                           List<SimpleImageBannerBean> simpleImageBannerBeans,
                                                                            int defultPic) {
+        if (null!=simpleImageBannerBeans) return simpleImageBannerBeans;
         ArrayList<SimpleImageBannerBean> imageList = new ArrayList<>();
         for (int i = 0; i < bannerImgs.size(); i++) {
             SimpleImageBannerBean simpleImageBannerBean = new SimpleImageBannerBean();

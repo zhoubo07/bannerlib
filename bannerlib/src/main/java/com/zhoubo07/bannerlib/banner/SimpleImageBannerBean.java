@@ -1,11 +1,13 @@
 package com.zhoubo07.bannerlib.banner;
 
+import com.zhoubo07.bannerlib.adapter.InsertCustomViewWrapper;
+
 /**
  * @titile
  * @desc Created by seven on 2018/5/22.
  */
 
-public class SimpleImageBannerBean {
+public class SimpleImageBannerBean extends InsertCustomViewWrapper {
     private String bannerImageUrl;
     private int bannerImageDefult;
 

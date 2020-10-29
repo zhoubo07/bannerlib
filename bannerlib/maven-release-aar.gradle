@@ -9,7 +9,7 @@ ext {
     PUBLISH_GROUP_ID = 'com.idengyun.androidlib'
 //    PUBLISH_GROUP_ID = 'com.zhoubo07.androidlib'
     PUBLISH_ARTIFACT_ID = 'bannerlib'
-    PUBLISH_VERSION = '1.2.1'
+    PUBLISH_VERSION = '1.3.0'
 }
 // 3.maven-路径
 uploadArchives {

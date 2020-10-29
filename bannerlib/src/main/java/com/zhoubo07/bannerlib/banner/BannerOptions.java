@@ -1,10 +1,13 @@
 package com.zhoubo07.bannerlib.banner;
 
+import android.view.View;
+
 import com.zhoubo07.bannerlib.ConvenientBanner;
 import com.zhoubo07.bannerlib.layoutmanager.ItemTransformer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Title Banner工具的参数类
@@ -33,6 +36,8 @@ public class BannerOptions {
     private final int itemLayoutId;   //自定义banner布局
     private final CustomBannerHolder customBannerHolder;//自定义banner布局的适配器
     private final List customDataList;//自定义banner布局的数据源
+    private final List<SimpleImageBannerBean> bannerImgBeans;  // 简单的（除了自定义的仅图片）插入自定义布局的banner bean列表
+    private final Map<Integer, View> insertViewMap;//插入到banner中的view <bannerType,view>
 
     private BannerOptions(Builder builder) {
         convenientBanner = builder.convenientBanner;
@@ -56,6 +61,8 @@ public class BannerOptions {
         itemLayoutId = builder.itemLayoutId;
         customBannerHolder = builder.customBannerHolder;
         customDataList = builder.customDataList;
+        bannerImgBeans = builder.bannerImgBeans;
+        insertViewMap = builder.insertViewMap;
     }
 
     public static Builder newBuilder(ConvenientBanner convenientBanner) {
@@ -94,6 +101,10 @@ public class BannerOptions {
         return bannerImgs;
     }
 
+    public List<SimpleImageBannerBean> getBannerImgBeans() {
+        return bannerImgBeans;
+    }
+
     public int getDefultPic() {
         return defultPic;
     }
@@ -128,6 +139,10 @@ public class BannerOptions {
 
     public List getCustomDataList() {
         return customDataList;
+    }
+
+    public Map<Integer, View> getInsertViewMap() {
+        return insertViewMap;
     }
 
     public int getPageItemPaddingPx() {
@@ -168,6 +183,8 @@ public class BannerOptions {
         private int itemLayoutId;   //自定义banner布局
         private CustomBannerHolder customBannerHolder;//自定义banner布局的适配器
         private List customDataList;//自定义banner布局的数据源
+        private List<SimpleImageBannerBean> bannerImgBeans;  // 简单的（除了自定义的仅图片）插入自定义布局的banner bean列表
+        private Map<Integer, View> insertViewMap;//插入到banner中的view <bannerType,view>
 
         public Builder(ConvenientBanner convenientBanner){
             this.convenientBanner = convenientBanner;
@@ -252,6 +269,17 @@ public class BannerOptions {
             this.customDataList = customDataList;
             return this;
         }
+
+        public Builder insertViewMap(Map<Integer, View> insertViewMap) {
+            this.insertViewMap = insertViewMap;
+            return this;
+        }
+
+        public Builder bannerImgBeans(List<SimpleImageBannerBean> bannerImgBeans) {
+            this.bannerImgBeans = bannerImgBeans;
+            return this;
+        }
+
         public Builder leftOffsetPx(int leftOffsetPx) {
             this.leftOffsetPx = leftOffsetPx;
             return this;

@@ -3,6 +3,7 @@ package com.zhoubo07.bannerlib.adapter;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 
 /**
@@ -31,6 +32,9 @@ public class CBPageAdapterHelper {
 
     private void setViewMargin(View view, int left, int top, int right, int bottom) {
         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+        if (null == lp){
+            lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        }
         if (lp.leftMargin != left || lp.topMargin != top || lp.rightMargin != right || lp.bottomMargin != bottom) {
             lp.setMargins(left, top, right, bottom);
             view.setLayoutParams(lp);

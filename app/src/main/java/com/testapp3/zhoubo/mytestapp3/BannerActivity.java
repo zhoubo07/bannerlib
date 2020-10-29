@@ -11,6 +11,9 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,6 +31,8 @@ import com.zhoubo07.bannerlib.layoutmanager.ItemTransformerPageScroll;
 import com.zhoubo07.bannerlib.listener.OnPageChangeListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class BannerActivity extends Activity {
@@ -35,7 +40,7 @@ public class BannerActivity extends Activity {
     private ConvenientBanner banner;
     private FrameLayout flBg;
     private TextView tvBanner;
-    private ArrayList<String> imgs;
+    private ArrayList<SimpleImageBannerBean> imgs;
 
     public static void start(Context context, int bannerType) {
         Intent starter = new Intent(context, BannerActivity.class);
@@ -65,11 +70,21 @@ public class BannerActivity extends Activity {
     protected void initData() {
         imgs = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            imgs.add("https://ss3.baidu.com/-rVXeDTa2gU2pMbgoY3K/it/u=1068465475,257788198&fm=202&mola=new&crop=v1");
+            SimpleImageBannerBean bannerBean = new SimpleImageBannerBean();
+            bannerBean.setBannerImageUrl("https://ss3.baidu.com/-rVXeDTa2gU2pMbgoY3K/it/u=1068465475,257788198&fm=202&mola=new&crop=v1");
+            if (i == 2) {
+                bannerBean.setBannerType(1);
+
+            }
+            imgs.add(bannerBean);
+
         }
+
+
         int bannerType = getIntent().getIntExtra("banner_type", 0);
         switch (bannerType) {
             case 0://普通banner
+                initGalleryBanner();
                 break;
             case 1://画廊banner
                 initGalleryBanner();
@@ -117,13 +132,20 @@ public class BannerActivity extends Activity {
     private String[] colorArr = {"#000000", "#4e5de0", "#030102", "#D81B60", "#008577"};
     ArgbEvaluator argbEvaluator = new ArgbEvaluator();
 
+    // 画廊效果--背景渐变过度
     private void initGalleryBanner() {
+        View insertView = LayoutInflater.from(this).inflate(R.layout.view_banner_insert, null);
+        HashMap<Integer, View> map = new HashMap<>();
+        map.put(1, insertView);
+
+
         BannerOptions bannerOptions = BannerOptions.newBuilder(banner)
                 .isGallery(true)
                 .isCorners(true)
+                .insertViewMap(map)
                 .ratio(3 / 4f)
                 .leftMarginPx(10)
-                .galleryItemTransformer(new ItemTransformerPageScroll(5) {
+                /*.galleryItemTransformer(new ItemTransformerPageScroll(5) {
                     @Override
                     public void onPageScrolled(int position, float fraction, boolean isLeftWithCenter) {
                         String endColor;
@@ -133,9 +155,9 @@ public class BannerActivity extends Activity {
 //                        flBg.setBackgroundColor(evaluate);
                         flBg.setBackground(getBgDrawable(evaluate));
                     }
-                })
+                })*/
                 .pageItemPaddingPx(20)
-                .bannerImgs(imgs)
+                .bannerImgBeans(imgs)
                 .build();
 
         BannerSetUtil.setBanner(bannerOptions, null);
@@ -178,8 +200,8 @@ public class BannerActivity extends Activity {
     }
 
     public static void displayImage(Context context, ImageView imageview, String url, int placeholderPic, int errorPic) {
-        if(TextUtils.isEmpty(url)){
-            if(placeholderPic>0){
+        if (TextUtils.isEmpty(url)) {
+            if (placeholderPic > 0) {
                 imageview.setImageResource(placeholderPic);
             }
             return;
