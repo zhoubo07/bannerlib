@@ -1,13 +1,14 @@
 package com.zhoubo07.bannerlib.banner;
 
-import android.view.View;
+import android.support.annotation.LayoutRes;
+import android.util.SparseIntArray;
 
 import com.zhoubo07.bannerlib.ConvenientBanner;
+import com.zhoubo07.bannerlib.adapter.InsertCustomViewWrapper;
 import com.zhoubo07.bannerlib.layoutmanager.ItemTransformer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Title Banner工具的参数类
@@ -34,10 +35,10 @@ public class BannerOptions {
     private final int leftMarginPx;//初始的时候左侧的margin
     private final boolean isCorners;  //是否是圆角（如果是画廊样式的默认圆角）
     private final int itemLayoutId;   //自定义banner布局
-    private final CustomBannerHolder customBannerHolder;//自定义banner布局的适配器
-    private final List customDataList;//自定义banner布局的数据源
+    private final BannerHolder bannerHolder;//自定义banner布局的适配器
+    private final List<InsertCustomViewWrapper> customDataList;//自定义banner布局的数据源
     private final List<SimpleImageBannerBean> bannerImgBeans;  // 简单的（除了自定义的仅图片）插入自定义布局的banner bean列表
-    private final Map<Integer, View> insertViewMap;//插入到banner中的view <bannerType,view>
+    private SparseIntArray layouts; // 多布局，key是itemType，value是layoutId
 
     private BannerOptions(Builder builder) {
         convenientBanner = builder.convenientBanner;
@@ -59,10 +60,10 @@ public class BannerOptions {
         leftMarginPx = builder.leftMarginPx;
         isCorners = builder.isCorners;
         itemLayoutId = builder.itemLayoutId;
-        customBannerHolder = builder.customBannerHolder;
+        bannerHolder = builder.bannerHolder;
         customDataList = builder.customDataList;
         bannerImgBeans = builder.bannerImgBeans;
-        insertViewMap = builder.insertViewMap;
+        layouts = builder.layouts;
     }
 
     public static Builder newBuilder(ConvenientBanner convenientBanner) {
@@ -133,16 +134,12 @@ public class BannerOptions {
         return itemLayoutId;
     }
 
-    public CustomBannerHolder getCustomBannerHolder() {
-        return customBannerHolder;
+    public BannerHolder getBannerHolder() {
+        return bannerHolder;
     }
 
     public List getCustomDataList() {
         return customDataList;
-    }
-
-    public Map<Integer, View> getInsertViewMap() {
-        return insertViewMap;
     }
 
     public int getPageItemPaddingPx() {
@@ -159,6 +156,10 @@ public class BannerOptions {
 
     public ItemTransformer getGalleryItemTransformer() {
         return galleryItemTransformer;
+    }
+
+    public SparseIntArray getLayouts() {
+        return layouts;
     }
 
     public static final class Builder {
@@ -181,13 +182,21 @@ public class BannerOptions {
         private int leftMarginPx;//初始的时候左侧的margin
         private boolean isCorners;  //是否是圆角
         private int itemLayoutId;   //自定义banner布局
-        private CustomBannerHolder customBannerHolder;//自定义banner布局的适配器
-        private List customDataList;//自定义banner布局的数据源
+        private BannerHolder bannerHolder;//自定义banner布局的适配器
+        private List<InsertCustomViewWrapper> customDataList;//自定义banner布局的数据源
         private List<SimpleImageBannerBean> bannerImgBeans;  // 简单的（除了自定义的仅图片）插入自定义布局的banner bean列表
-        private Map<Integer, View> insertViewMap;//插入到banner中的view <bannerType,view>
+        private SparseIntArray layouts; // 多布局，key是itemType，value是layoutId
 
-        public Builder(ConvenientBanner convenientBanner){
+        public Builder(ConvenientBanner convenientBanner) {
             this.convenientBanner = convenientBanner;
+        }
+
+        public Builder registerItemType(int itemType, @LayoutRes int layoutResId) {
+            if (this.layouts == null) {
+                this.layouts = new SparseIntArray();
+            }
+            this.layouts.put(itemType, layoutResId);
+            return this;
         }
 
         public Builder indicatorSelectResId(int indicatorSelectResId) {
@@ -260,18 +269,13 @@ public class BannerOptions {
             return this;
         }
 
-        public Builder customBannerHolder(CustomBannerHolder customBannerHolder) {
-            this.customBannerHolder = customBannerHolder;
+        public Builder bannerHolder(BannerHolder bannerHolder) {
+            this.bannerHolder = bannerHolder;
             return this;
         }
 
-        public Builder customDataList(List customDataList) {
+        public Builder customDataList(List<InsertCustomViewWrapper> customDataList) {
             this.customDataList = customDataList;
-            return this;
-        }
-
-        public Builder insertViewMap(Map<Integer, View> insertViewMap) {
-            this.insertViewMap = insertViewMap;
             return this;
         }
 

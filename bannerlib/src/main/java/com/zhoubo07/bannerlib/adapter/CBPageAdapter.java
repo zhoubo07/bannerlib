@@ -1,40 +1,44 @@
 
 package com.zhoubo07.bannerlib.adapter;
 
+import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
+import com.zhoubo07.bannerlib.banner.BannerHolder;
 import com.zhoubo07.bannerlib.listener.OnItemClickListener;
-import com.zhoubo07.bannerlib.holder.CBViewHolderCreator;
-import com.zhoubo07.bannerlib.holder.Holder;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Sai on 15/7/29.
  */
-public class CBPageAdapter<T> extends RecyclerView.Adapter<Holder> {
+public class CBPageAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     protected List<T> datas;
-    private CBViewHolderCreator creator;
     private CBPageAdapterHelper helper;
+    private BannerHolder bannerHolder;
     private boolean canLoop;
     private OnItemClickListener onItemClickListener;
-    private Map<Integer, View> insertViewMap;
 
-    public CBPageAdapter(CBViewHolderCreator creator, List<T> datas, boolean canLoop, Map<Integer, View> insertViewMap) {
-        this.creator = creator;
+    private SparseIntArray layouts;
+    private @LayoutRes
+    int layoutResId;
+
+    public CBPageAdapter(BannerHolder bannerHolder, SparseIntArray layouts, List<T> datas, @LayoutRes int layoutResId, boolean canLoop) {
+        this.bannerHolder = bannerHolder;
+        this.layouts = layouts;
         this.datas = datas;
         this.canLoop = canLoop;
-        this.insertViewMap = insertViewMap;
         helper = new CBPageAdapterHelper();
+        this.layoutResId = layoutResId;
     }
 
-    public CBPageAdapter(CBViewHolderCreator creator, List<T> datas, boolean canLoop) {
-        this(creator, datas, canLoop, null);
+    public CBPageAdapter(BannerHolder bannerHolder, SparseIntArray layouts, List<T> datas, boolean canLoop) {
+        this(bannerHolder, layouts, datas, 0, canLoop);
     }
 
     @Override
@@ -47,42 +51,26 @@ public class CBPageAdapter<T> extends RecyclerView.Adapter<Holder> {
     }
 
     @Override
-    public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (null != insertViewMap && null != insertViewMap.get(viewType)) {
-            if (null == insertViewMap.get(viewType).getLayoutParams()) {
-                FrameLayout.LayoutParams layoutParams
-                        = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-                insertViewMap.get(viewType).setLayoutParams(layoutParams);
-            }
-            return new Holder(insertViewMap.get(viewType)) {
-                @Override
-                protected void initView(View itemView) {
-
-                }
-
-                @Override
-                public void updateUI(Object data) {
-
-                }
-            };
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        int currLayoutResId;
+        if (null != layouts && layouts.get(viewType, 0) != 0) {
+            currLayoutResId = layouts.get(viewType);
+        } else {
+            currLayoutResId = layoutResId;
         }
-
-        int layoutId = creator.getLayoutId();
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(currLayoutResId, parent, false);
         helper.onCreateViewHolder(parent, itemView);
-        return creator.createHolder(itemView);
+        return new RecyclerView.ViewHolder(itemView) {
+        };
     }
 
     @Override
-    public void onBindViewHolder(Holder holder, int position) {
-        helper.onBindViewHolder(holder.itemView, position, getItemCount());
-        /*if (null != insertViewMap && insertViewMap.containsKey(getItemViewType(position))) {
-            return;
-        }*/
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position) {
+        helper.onBindViewHolder(viewHolder.itemView, position, getItemCount());
         int realPosition = position % datas.size();
-        holder.updateUI(datas.get(realPosition));
+        bannerHolder.updateUI(viewHolder, realPosition, datas.get(realPosition));
         if (onItemClickListener != null) {
-            holder.itemView.setOnClickListener(new OnPageClickListener(realPosition));
+            viewHolder.itemView.setOnClickListener(new OnPageClickListener(realPosition));
         }
     }
 

@@ -2,9 +2,11 @@ package com.zhoubo07.bannerlib;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.annotation.LayoutRes;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,8 +16,8 @@ import android.widget.RelativeLayout;
 
 
 import com.zhoubo07.bannerlib.adapter.CBPageAdapter;
+import com.zhoubo07.bannerlib.banner.BannerHolder;
 import com.zhoubo07.bannerlib.helper.CBLoopScaleHelper;
-import com.zhoubo07.bannerlib.holder.CBViewHolderCreator;
 import com.zhoubo07.bannerlib.listener.CBPageChangeListener;
 import com.zhoubo07.bannerlib.listener.OnItemClickListener;
 import com.zhoubo07.bannerlib.listener.OnPageChangeListener;
@@ -25,7 +27,6 @@ import com.zhoubo07.bannerlib.view.CBLoopViewPager;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 页面翻转控件，极方便的广告栏
@@ -70,8 +71,8 @@ public class ConvenientBanner<T> extends RelativeLayout {
     private void init(Context context) {
         View hView = LayoutInflater.from(context).inflate(
                 R.layout.include_viewpager, this, true);
-        viewPager = (CBLoopViewPager)hView.findViewById(R.id.cbLoopViewPager);
-        loPageTurningPoint = (ViewGroup)hView
+        viewPager = (CBLoopViewPager) hView.findViewById(R.id.cbLoopViewPager);
+        loPageTurningPoint = (ViewGroup) hView
                 .findViewById(R.id.loPageTurningPoint);
 
         final LinearLayoutManager linearLayoutManager = new ScrollLinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
@@ -86,16 +87,17 @@ public class ConvenientBanner<T> extends RelativeLayout {
         viewPager.setLayoutManager(layoutManager);
         return this;
     }
-    public ConvenientBanner setPages(List<T> datas, Map<Integer, View> insertViewMap, CBViewHolderCreator holderCreator) {
-        if(null==mDatas)mDatas = new ArrayList<>();
+
+    public ConvenientBanner setPages(List<T> datas, BannerHolder bannerHolder, SparseIntArray layouts, @LayoutRes int layoutResId) {
+        if (null == mDatas) mDatas = new ArrayList<>();
         mDatas.clear();
         mDatas.addAll(datas);
-        if(isInitedBanner){
+        if (isInitedBanner) {
             notifyDataSetChanged();
             return this;
         }
         isInitedBanner = true;
-        pageAdapter = new CBPageAdapter(holderCreator, mDatas, canLoop,insertViewMap);
+        pageAdapter = new CBPageAdapter(bannerHolder, layouts, mDatas, layoutResId, canLoop);
         pageAdapter.setPagePadding(sPagePadding);
         pageAdapter.setShowLeftCardWidth(sShowLeftCardWidth);
         cbLoopScaleHelper.setPagePadding(sPagePadding);
@@ -105,27 +107,28 @@ public class ConvenientBanner<T> extends RelativeLayout {
         if (page_indicatorId != null)
             setPageIndicator(page_indicatorId);
 
-        cbLoopScaleHelper.setFirstItemPos(canLoop ? mDatas.size() *3: 0);
-        cbLoopScaleHelper.attachToRecyclerView(viewPager,isSnapLeft,snapLeftMargin);
+        cbLoopScaleHelper.setFirstItemPos(canLoop ? mDatas.size() * 3 : 0);
+        cbLoopScaleHelper.attachToRecyclerView(viewPager, isSnapLeft, snapLeftMargin);
 
         return this;
     }
 
-    public ConvenientBanner setCanLoop(boolean canLoop){
+    public ConvenientBanner setCanLoop(boolean canLoop) {
         this.canLoop = canLoop;
-        if(null!=pageAdapter){
+        if (null != pageAdapter) {
             pageAdapter.setCanLoop(canLoop);
             notifyDataSetChanged();
         }
         return this;
     }
 
-    public boolean isCanLoop(){
+    public boolean isCanLoop() {
         return canLoop;
     }
 
-    private  int sPagePadding = 0;
-    private  int sShowLeftCardWidth = 0;
+    private int sPagePadding = 0;
+    private int sShowLeftCardWidth = 0;
+
     public void setPagePadding(int pagePadding) {
         sPagePadding = pagePadding;
     }
@@ -142,10 +145,10 @@ public class ConvenientBanner<T> extends RelativeLayout {
 
     /**
      * @param isSnapLeft 是否左侧放大（需要搭配画廊的transform动画设置ui），这里根据此值算放大图的中心
-     * @param leftMargin  距离左侧的值（滑动时的offset值）
+     * @param leftMargin 距离左侧的值（滑动时的offset值）
      */
     //设置画廊左侧图片放大
-    public void setSnapLeft(boolean isSnapLeft,int leftMargin){
+    public void setSnapLeft(boolean isSnapLeft, int leftMargin) {
         this.isSnapLeft = isSnapLeft;
         this.snapLeftMargin = leftMargin;
     }
@@ -157,14 +160,14 @@ public class ConvenientBanner<T> extends RelativeLayout {
         viewPager.getAdapter().notifyDataSetChanged();
         if (page_indicatorId != null)
             setPageIndicator(page_indicatorId);
-        cbLoopScaleHelper.setCurrentItem(canLoop ? mDatas.size() *3: 0);
+        cbLoopScaleHelper.setCurrentItem(canLoop ? mDatas.size() * 3 : 0);
     }
 
     /**
      * 通知数据变化 对外提供的方法
      */
-    public void notifyDataSetChanged(List<T> datas){
-        if(null==mDatas)mDatas = new ArrayList<>();
+    public void notifyDataSetChanged(List<T> datas) {
+        if (null == mDatas) mDatas = new ArrayList<>();
         mDatas.clear();
         mDatas.addAll(datas);
         notifyDataSetChanged();
@@ -186,7 +189,7 @@ public class ConvenientBanner<T> extends RelativeLayout {
      * @param page_indicatorId
      */
     public ConvenientBanner setPageIndicator(int[] page_indicatorId) {
-        if (null==page_indicatorId) return this;
+        if (null == page_indicatorId) return this;
         loPageTurningPoint.removeAllViews();
         mPointViews.clear();
         this.page_indicatorId = page_indicatorId;
@@ -195,7 +198,7 @@ public class ConvenientBanner<T> extends RelativeLayout {
             // 翻页指示的点
             ImageView pointView = new ImageView(getContext());
             pointView.setPadding(5, 0, 5, 0);
-            if (cbLoopScaleHelper.getFirstItemPos()%mDatas.size()==count)
+            if (cbLoopScaleHelper.getFirstItemPos() % mDatas.size() == count)
                 pointView.setImageResource(page_indicatorId[1]);
             else
                 pointView.setImageResource(page_indicatorId[0]);
@@ -246,29 +249,34 @@ public class ConvenientBanner<T> extends RelativeLayout {
 
     /**
      * 获取当前页对应的position
+     *
      * @return
      */
     public int getCurrentItem() {
         return cbLoopScaleHelper.getRealCurrentItem();
     }
+
     /**
      * 设置当前页对应的position
+     *
      * @return
      */
     public ConvenientBanner setCurrentItem(int position, boolean smoothScroll) {
-        cbLoopScaleHelper.setCurrentItem(canLoop ? mDatas.size()+position : position, smoothScroll);
+        cbLoopScaleHelper.setCurrentItem(canLoop ? mDatas.size() + position : position, smoothScroll);
         return this;
     }
 
     /**
      * 设置第一次加载当前页对应的position
      * setPageIndicator之前使用
+     *
      * @return
      */
     public ConvenientBanner setFirstItemPos(int position) {
-        cbLoopScaleHelper.setFirstItemPos(canLoop ? mDatas.size()+position : position);
+        cbLoopScaleHelper.setFirstItemPos(canLoop ? mDatas.size() + position : position);
         return this;
     }
+
     /**
      * 指示器的方向
      *
@@ -360,7 +368,8 @@ public class ConvenientBanner<T> extends RelativeLayout {
     }
 
     public boolean isInitedBanner = false;
-    public boolean isInitedBanner(){
+
+    public boolean isInitedBanner() {
         return isInitedBanner;
     }
 

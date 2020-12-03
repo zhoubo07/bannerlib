@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Point;
 import android.os.Build;
+import android.util.SparseIntArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -11,8 +12,6 @@ import android.view.WindowManager;
 
 import com.zhoubo07.bannerlib.ConvenientBanner;
 import com.zhoubo07.bannerlib.R;
-import com.zhoubo07.bannerlib.holder.CBViewHolderCreator;
-import com.zhoubo07.bannerlib.holder.Holder;
 import com.zhoubo07.bannerlib.layoutmanager.DefaultGalleryItemTransformer;
 import com.zhoubo07.bannerlib.layoutmanager.ItemTransformer;
 import com.zhoubo07.bannerlib.listener.OnItemClickListener;
@@ -51,33 +50,42 @@ public class BannerSetUtil {
         convenientBanner.setShowLeftCardWidth(bannerOptions.getLeftMarginPx());
         convenientBanner.setSnapLeft(bannerOptions.isGalleryAndSnapLeft(), bannerOptions.getLeftOffsetPx());
 
-        //判断此次banner加载是不是自定义布局，图片列表不为空则是图片banner
-        int itemLayoutId = bannerOptions.getItemLayoutId();
-        if (itemLayoutId == 0) {
-            //没有设定自定义布局id，所以是图片banner
-            List<String> bannerImgs = bannerOptions.getBannerImgs();
-            List<SimpleImageBannerBean> bannerImgBeans= bannerOptions.getBannerImgBeans();
-
-            if (null == bannerImgs && null == bannerImgBeans) throw new RuntimeException("缺少图片数据源");
-
-            //判断是否画廊样式
-            boolean isGallery = bannerOptions.isGallery();
-            if (isGallery) {
-                //设置画廊样式LayoutManager
-                setGalleryManager(convenientBanner, bannerOptions);
-            }
-
-
-
-            setPage(bannerOptions, getImageBannerBeanList(bannerImgs,bannerImgBeans, bannerOptions.getDefultPic()), onItemClickListener);
-        } else {
-            //设置view样式
+        SparseIntArray layouts = bannerOptions.getLayouts();
+        if (null != layouts && layouts.size() > 0) {
+            // 注册了多布局
             List customDataList = bannerOptions.getCustomDataList();
-            CustomBannerHolder customBannerHolder = bannerOptions.getCustomBannerHolder();
+            BannerHolder bannerHolder = bannerOptions.getBannerHolder();
             if (null == customDataList) throw new RuntimeException("缺少数据源");
-            if (null == customBannerHolder) throw new RuntimeException("请设置CustomBannerHolder");
-            setBannerView(bannerOptions, itemLayoutId, customDataList, customBannerHolder, onItemClickListener);
+            if (null == bannerHolder) throw new RuntimeException("请设置BannerHolder");
+            setMultiTypeBannerView(bannerOptions, customDataList, bannerHolder, layouts, onItemClickListener);
+        } else {
+            //判断此次banner加载是不是自定义布局，图片列表不为空则是图片banner
+            int itemLayoutId = bannerOptions.getItemLayoutId();
+            if (itemLayoutId == 0) {
+                //没有设定自定义布局id，所以是图片banner
+                List<String> bannerImgs = bannerOptions.getBannerImgs();
+                List<SimpleImageBannerBean> bannerImgBeans = bannerOptions.getBannerImgBeans();
+
+                if (null == bannerImgs && null == bannerImgBeans)
+                    throw new RuntimeException("缺少图片数据源");
+
+                //判断是否画廊样式
+                boolean isGallery = bannerOptions.isGallery();
+                if (isGallery) {
+                    //设置画廊样式LayoutManager
+                    setGalleryManager(convenientBanner, bannerOptions);
+                }
+                setPage(bannerOptions, getImageBannerBeanList(bannerImgs, bannerImgBeans, bannerOptions.getDefultPic()), onItemClickListener);
+            } else {
+                //设置view样式
+                List customDataList = bannerOptions.getCustomDataList();
+                BannerHolder bannerHolder = bannerOptions.getBannerHolder();
+                if (null == customDataList) throw new RuntimeException("缺少数据源");
+                if (null == bannerHolder) throw new RuntimeException("请设置BannerHolder");
+                setBannerView(bannerOptions, itemLayoutId, customDataList, bannerHolder, onItemClickListener);
+            }
         }
+
 
         //设置banner的宽高
         setBannerParams(convenientBanner, widthPx, heightPx);
@@ -97,68 +105,47 @@ public class BannerSetUtil {
         if (bannerOptions.isCorners()) pageResId = R.layout.bannerlib_bannerview_image_radius;
         else pageResId = R.layout.bannerlib_bannerview_image;
         bannerOptions.getConvenientBanner().setPages(
-                imageList,
-                bannerOptions.getInsertViewMap(),
-                new CBViewHolderCreator() {
-                    @Override
-                    public Holder createHolder(View itemView) {
-                        return new SimpleImageHolder(itemView);
-                    }
-
-                    @Override
-                    public int getLayoutId() {
-                        return pageResId;
-                    }
-                });
+                imageList, new SimpleImageHolder(), null, pageResId);
 
         //设置指示器和条目监听
-        setIndicatorAndItemListener(bannerOptions,imageList.size(),onItemClickListener);
+        setIndicatorAndItemListener(bannerOptions, imageList.size(), onItemClickListener);
     }
 
     private static <T> void setBannerView(BannerOptions bannerOptions,
-                                         final int itemLayoutId,
-                                         final List<T> dataList,
-                                         final CustomBannerHolder holder,
-                                         OnItemClickListener onItemClickListener) {
+                                          final int itemLayoutId,
+                                          final List<T> dataList,
+                                          final BannerHolder<T> holder,
+                                          OnItemClickListener onItemClickListener) {
         bannerOptions.getConvenientBanner().setShowLeftCardWidth(0);
         bannerOptions.getConvenientBanner().setPages(
-                dataList,
-                bannerOptions.getInsertViewMap(),
-                new CBViewHolderCreator() {
-                    @Override
-                    public Holder createHolder(View itemView) {
-                        Holder holder0 = new Holder<T>(itemView) {
-                            @Override
-                            protected void initView(View itemView) {
-                                holder.initView(itemView);
-                            }
-
-                            @Override
-                            public void updateUI(T data) {
-                                holder.updateUI(itemView, data);
-                            }
-                        };
-                        return holder0;
-                    }
-
-                    @Override
-                    public int getLayoutId() {
-                        return itemLayoutId;
-                    }
-                });
+                dataList, holder, null, itemLayoutId);
 
         //设置指示器和条目监听
-        setIndicatorAndItemListener(bannerOptions,dataList.size(),onItemClickListener);
+        setIndicatorAndItemListener(bannerOptions, dataList.size(), onItemClickListener);
+    }
+
+    // 设置多布局的banner
+    private static <T> void setMultiTypeBannerView(BannerOptions bannerOptions,
+                                                   final List<T> dataList,
+                                                   final BannerHolder holder,
+                                                   SparseIntArray layouts,
+                                                   OnItemClickListener onItemClickListener) {
+        bannerOptions.getConvenientBanner().setShowLeftCardWidth(0);
+        bannerOptions.getConvenientBanner().setPages(
+                dataList, holder, layouts, 0);
+        //设置指示器和条目监听
+        setIndicatorAndItemListener(bannerOptions, dataList.size(), onItemClickListener);
     }
 
 
     /**
      * 设置指示器和条目监听
-     * @param bannerOptions     banner参数
-     * @param listCount         数据源数量
+     *
+     * @param bannerOptions       banner参数
+     * @param listCount           数据源数量
      * @param onItemClickListener 条目监听
      */
-    private static void setIndicatorAndItemListener(BannerOptions bannerOptions,int listCount,OnItemClickListener onItemClickListener){
+    private static void setIndicatorAndItemListener(BannerOptions bannerOptions, int listCount, OnItemClickListener onItemClickListener) {
         //设置两个点图片作为翻页指示器，不设置则没有指示器，可以根据自己需求自行配合自己的指示器,不需要圆点指示器可用不设
         if (bannerOptions.isHideIndicator()) {
             //隐藏指示器（优先级最高，不关心其他情况，如果设置此属性则隐藏指示器）
@@ -184,9 +171,9 @@ public class BannerSetUtil {
      * @return
      */
     private static List<SimpleImageBannerBean> getImageBannerBeanList(final List<String> bannerImgs,
-                                                                           List<SimpleImageBannerBean> simpleImageBannerBeans,
-                                                                           int defultPic) {
-        if (null!=simpleImageBannerBeans) return simpleImageBannerBeans;
+                                                                      List<SimpleImageBannerBean> simpleImageBannerBeans,
+                                                                      int defultPic) {
+        if (null != simpleImageBannerBeans) return simpleImageBannerBeans;
         ArrayList<SimpleImageBannerBean> imageList = new ArrayList<>();
         for (int i = 0; i < bannerImgs.size(); i++) {
             SimpleImageBannerBean simpleImageBannerBean = new SimpleImageBannerBean();

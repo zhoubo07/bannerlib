@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -134,15 +135,14 @@ public class BannerActivity extends Activity {
 
     // 画廊效果--背景渐变过度
     private void initGalleryBanner() {
-        View insertView = LayoutInflater.from(this).inflate(R.layout.view_banner_insert, null);
+        /*View insertView = LayoutInflater.from(this).inflate(R.layout.view_banner_insert, null);
         HashMap<Integer, View> map = new HashMap<>();
-        map.put(1, insertView);
+        map.put(1, insertView);*/
 
 
         BannerOptions bannerOptions = BannerOptions.newBuilder(banner)
                 .isGallery(true)
                 .isCorners(true)
-                .insertViewMap(map)
                 .ratio(3 / 4f)
                 .leftMarginPx(10)
                 /*.galleryItemTransformer(new ItemTransformerPageScroll(5) {
